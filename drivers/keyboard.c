@@ -38,6 +38,8 @@ char keyboard_scancode_to_char(unsigned char scancode) {
         case 0x2D: return 'x';
         case 0x15: return 'y';
         case 0x2C: return 'z';
+        case 0x39: return ' ';
+        case 0x1C: return '\n';
         default: return 0;
     }
 }
