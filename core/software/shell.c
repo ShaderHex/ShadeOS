@@ -2,17 +2,21 @@
 #include "../../drivers/keyboard.h"
 #include "../../drivers/io.h"
 #include "../../core/lib/string.c"
+#include "shell/command/help.h"
+#include "shell/command/snake.h"
 #include "shell.h"
 
 
 void execute_command(const char *cmd) {
     if (strcmp(cmd, "help") == 0) {
-        print_string("\nAvailable commands:\nhelp\nclear\nshutdown\n");
+        cmd_help();
     } else if (strcmp(cmd, "clear") == 0) {
         clear_screen();
     } else if (strcmp(cmd, "shutdown") == 0) {
         print_string("\nSystem shutting down...\n");
-    } else {
+    } else if (strcmp(cmd, "snake") == 0) {
+        cmd_snake();
+    } else{
         print_string("\nUnknown command: ");
         print_string((char*)cmd);
         print_string("\n");
@@ -20,7 +24,7 @@ void execute_command(const char *cmd) {
 }
 
 void shell_loop(void) {
-    clear_screen();
+    //clear_screen();
     print_string("Welcome to the shell!\n> ");
 
     char command[128];

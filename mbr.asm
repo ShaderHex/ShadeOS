@@ -2,7 +2,7 @@
 [org 0x7c00]
 
 KERNEL_OFFSET equ 0x1000
-BOOT_DRIVE db 0
+BOOT_DRIVE db 0x80
 
 start:
     mov [BOOT_DRIVE], dl
@@ -56,8 +56,36 @@ disk_error:
 load_kernel:
     mov bx, KERNEL_OFFSET
     mov dl, [BOOT_DRIVE]
+    
+    mov si, msg_drive
+    call print_string
+    mov al, dl
+    call print_hex
+    mov si, newline
+    call print_string
+    
     call disk_load
     ret
+
+; Add hex print function
+print_hex:
+    pusha
+    mov cx, 4
+.hex_loop:
+    rol ax, 4
+    mov bx, ax
+    and bx, 0x0f
+    mov bl, [hex_chars + bx]
+    mov ah, 0x0e
+    mov al, bl
+    int 0x10
+    loop .hex_loop
+    popa
+    ret
+
+hex_chars db '0123456789ABCDEF'
+msg_drive db "Drive: 0x", 0
+newline db 13, 10, 0
 
 ; GDT
 gdt_start:
@@ -104,7 +132,6 @@ init_32bit:
     mov ebp, 0x90000
     mov esp, ebp
     
-    ; Call kernel directly
     call KERNEL_OFFSET
     jmp $
 

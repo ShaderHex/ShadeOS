@@ -23,11 +23,14 @@ os-image.bin: mbr.bin kernel.bin
 	dd if=/dev/zero bs=512 count=10 >> os-image.bin 2>/dev/null || true
 
 run: os-image.bin
-	qemu-system-i386 -fda os-image.bin
+	qemu-system-i386 -hda os-image.bin
 
 debug: os-image.bin kernel.elf
 	qemu-system-i386 -S -s -fda os-image.bin &
 	i386-elf-gdb -ex "target remote localhost:1234" -ex "symbol-file kernel.elf"
 
 clean:
-	$(RM) *.bin *.o *.elf
+	rm -f *.bin *.elf
+	rm -f drivers/*.o
+	rm -f core/software/*.o
+	rm -f *.o
