@@ -8,7 +8,11 @@ start:
     mov [BOOT_DRIVE], dl
     mov bp, 0x9000
     mov sp, bp
-    
+    xor ax, ax
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
     mov si, msg_loading
     call print_string
     
@@ -37,7 +41,7 @@ print_string:
 disk_load:
     pusha
     mov ah, 0x02
-    mov al, 10              ; Load 10 sectors (5KB)
+    mov al, 11
     mov cl, 0x02
     mov ch, 0x00
     mov dh, 0x00
