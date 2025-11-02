@@ -2,6 +2,9 @@
     "files.associations": {
         "keyboard.h": "c",
         "shell.h": "c",
-        "io.h": "c"
+        "io.h": "c",
+        "systeminfo.h": "c",
+        "help.h": "c",
+        "snake.h": "c"
     }
 }

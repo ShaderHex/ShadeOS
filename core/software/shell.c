@@ -4,6 +4,7 @@
 #include "../../core/lib/string.c"
 #include "shell/command/help.h"
 #include "shell/command/snake.h"
+#include "shell/command/systeminfo.h"
 #include "shell.h"
 
 
@@ -16,6 +17,8 @@ void execute_command(const char *cmd) {
         print_string("\nSystem shutting down...\n");
     } else if (strcmp(cmd, "snake") == 0) {
         cmd_snake();
+    } else if (strcmp(cmd, "sysinfo") == 0) {
+        cmd_systeminfo();
     } else{
         print_string("\nUnknown command: ");
         print_string((char*)cmd);

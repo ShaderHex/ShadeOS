@@ -40,6 +40,7 @@ char keyboard_scancode_to_char(unsigned char scancode) {
         case 0x2C: return 'z';
         case 0x39: return ' ';
         case 0x1C: return '\n';
+        case 0x02: return '1';
         default: return 0;
     }
 }
