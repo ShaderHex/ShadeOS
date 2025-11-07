@@ -41,26 +41,26 @@ void print_cpu_info() {
     *((u32*)&vendor[8]) = ecx;
     vendor[12] = 0;
 
-    print_string("CPU Vendor: ");
-    print_string(vendor);
-    print_string("\n");
+    print_string("CPU Vendor: ", 0x0f);
+    print_string(vendor, 0x0f);
+    print_string("\n", 0x0f);
 
     cpuid(1, &eax, &ebx, &ecx, &edx);
     u32 cores = ((ebx>>16) & 0xff) + 1;
 
     char buf[16];
     int_to_string(cores, buf);
-    print_string("CPU Cores: ");
-    print_string(buf);
-    print_string("\n");
+    print_string("CPU Cores: ", 0x0f);
+    print_string(buf, 0x0f);
+    print_string("\n", 0x0f);
 
-    print_string("Features (EDX): 0x");
+    print_string("Features (EDX): 0x", 0x0f);
     for (int i = 28; i >= 0; i -= 4) {
         u32 nibble = (edx >> i) & 0xF;
         char c = nibble < 10 ? '0'+nibble : 'A'+(nibble-10);
-        print_string(&c);
+        print_string(&c, 0x0f);
     }
-    print_string("\n\n");
+    print_string("\n\n", 0x0f);
 }
 
 struct E820Entry {
@@ -76,14 +76,14 @@ struct E820Entry* entries = (struct E820Entry*)0x9000;
 void print_memory_info() {
     uint64_t total_ram = 0;
 
-    print_string("Total RAM: ");
+    print_string("Total RAM: ", 0x0f);
     //print_string(buf);
-    print_string(" MB\n");
+    print_string(" MB\n", 0x0f);
 }
 
 void cmd_systeminfo() {
-    print_string("\n=== SYSTEM INFO ===\n");
+    print_string("\n=== SYSTEM INFO ===\n", 0x0f);
     print_cpu_info();
     print_memory_info();
-    print_string("===================\n");
+    print_string("===================\n", 0x0f);
 }

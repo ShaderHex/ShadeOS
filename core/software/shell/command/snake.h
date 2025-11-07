@@ -83,19 +83,19 @@ void cmd_snake() {
         }
 
         // This draw the top border
-        for(int x = 0; x < WIDTH; x++) print_string("*");
-        print_string("\n");
+        for(int x = 0; x < WIDTH; x++) print_string("*", 0x0f);
+        print_string("\n", 0x0f);
 
         // This draw the height of the border
         for(int y = 0; y < HEIGHT - 2; y++) {
-            print_string("*");
+            print_string("*", 0x0f);
             for(int x = 0; x < WIDTH - 2; x++) {
                 int printed = 0;
 
                 // Draw snake segments
                 for(int i = 0; i < snake_length; i++) {
                     if(snake_body[i].x == x && snake_body[i].y == y) {
-                        print_string("O");
+                        print_string("O", 0x0f);
                         printed = 1;
                         break;
                     }
@@ -103,22 +103,22 @@ void cmd_snake() {
 
                 // Draw food
                 if(!printed && food.x == x && food.y == y) {
-                    print_string("F");
+                    print_string("F", 0x0f);
                     printed = 1;
                 }
 
-                if(!printed) print_string(" ");
+                if(!printed) print_string(" ", 0x0f);
             }
             // Right border with new line (smart move by me)
-            print_string("*\n");
+            print_string("*\n", 0x0f);
         }
 
         // Draw bottom border
-        for(int x = 0; x < WIDTH; x++) print_string("*");
-        print_string("\n");
+        for(int x = 0; x < WIDTH; x++) print_string("*", 0x0f);
+        print_string("\n", 0x0f);
 
         for(volatile int delay = 0; delay < 50000000; delay++);
     }
 
-    print_string("\nGame Over!\n");
+    print_string("\nGame Over!\n", 0x0f);
 }

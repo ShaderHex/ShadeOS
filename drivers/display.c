@@ -9,6 +9,7 @@
 #define MAX_ROWS 25
 #define MAX_COLS 80
 #define WHITE_ON_BLACK 0x0f
+#define WHITE_ON_RED 0x4f
 
 unsigned char port_byte_in(unsigned short port) {
     unsigned char result;
@@ -36,13 +37,13 @@ int get_cursor() {
     return offset * 2;
 }
 
-void set_char_at_video_memory(char character, int offset) {
+void set_char_at_video_memory(char character, int offset, unsigned char color) {
     unsigned char *vidmem = (unsigned char *) VIDEO_ADDRESS;
     vidmem[offset] = character;
-    vidmem[offset + 1] = WHITE_ON_BLACK;
+    vidmem[offset + 1] = color;
 }
 
-void print_string(const char *string) {
+void print_string(const char *string, unsigned char color) {
     int offset = get_cursor();
 
     for (int i = 0; string[i]; i++) {
@@ -51,7 +52,7 @@ void print_string(const char *string) {
         if (c == '\n') {
             offset = move_offset_to_new_line(offset);
         } else {
-            set_char_at_video_memory(c, offset);
+            set_char_at_video_memory(c, offset, color);
             offset += 2;
         }
 
@@ -90,7 +91,7 @@ int scroll_ln(int offset) {
     );
 
     for (int col = 0; col < MAX_COLS; col++) {
-        set_char_at_video_memory(' ', get_offset(col, MAX_ROWS - 1));
+        set_char_at_video_memory(' ', get_offset(col, MAX_ROWS - 1), WHITE_ON_BLACK);
     }
 
     return offset - 2 * MAX_COLS;
@@ -98,7 +99,7 @@ int scroll_ln(int offset) {
 
 void clear_screen() {
     for (int i = 0; i < MAX_COLS * MAX_ROWS; ++i) {
-        set_char_at_video_memory(' ', i * 2);
+        set_char_at_video_memory(' ', i * 2, WHITE_ON_BLACK);
     }
     set_cursor(get_offset(0, 0));
 }

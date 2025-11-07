@@ -1,6 +1,7 @@
 #include "../../drivers/display.h"
 #include "../../drivers/keyboard.h"
 #include "../../drivers/io.h"
+#include "../../drivers/panic.h"
 #include "../../core/lib/string.c"
 #include "shell/command/help.h"
 #include "shell/command/snake.h"
@@ -14,21 +15,23 @@ void execute_command(const char *cmd) {
     } else if (strcmp(cmd, "clear") == 0) {
         clear_screen();
     } else if (strcmp(cmd, "shutdown") == 0) {
-        print_string("\nSystem shutting down...\n");
+        print_string("\nSystem shutting down...\n", 0x0f);
     } else if (strcmp(cmd, "snake") == 0) {
         cmd_snake();
     } else if (strcmp(cmd, "sysinfo") == 0) {
         cmd_systeminfo();
-    } else{
-        print_string("\nUnknown command: ");
-        print_string((char*)cmd);
-        print_string("\n");
+    } else if (strcmp(cmd, "panic") == 0) {
+        kpanic("Test");
+    } else {
+        print_string("\nUnknown command: ", 0x0f);
+        print_string((char*)cmd, 0x0f);
+        print_string("\n", 0x0f);
     }
 }
 
 void shell_loop(void) {
     //clear_screen();
-    print_string("Welcome to the shell!\n> ");
+    print_string("Welcome to the shell!\n> ", 0x0f);
 
     char command[128];
     int index = 0;
@@ -43,18 +46,18 @@ void shell_loop(void) {
                 command[index] = '\0';
                 execute_command(command);
                 index = 0;
-                print_string("> ");
+                print_string("> ", 0x0f);
             }
             else if (scancode == 0x0E) {
                 if (index > 0) {
                     index--;
-                    print_string("\b \b");
+                    print_string("\b \b", 0x0f);
                 }
             }
             else if (ch != 0 && index < 127) {
                 command[index++] = ch;
                 char str[2] = { ch, 0 };
-                print_string(str);
+                print_string(str, 0x0f);
             }
         }
     }

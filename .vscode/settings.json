@@ -5,6 +5,7 @@
         "io.h": "c",
         "systeminfo.h": "c",
         "help.h": "c",
-        "snake.h": "c"
+        "snake.h": "c",
+        "panic.h": "c"
     }
 }
