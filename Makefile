@@ -1,13 +1,17 @@
 all: run
 
 OBJS = kernel.o kernel-entry.o \
-       drivers/display.o drivers/panic.o drivers/keyboard.o core/software/shell.o
+       drivers/display.o drivers/panic.o drivers/keyboard.o \
+       drivers/io.o \
+       core/lib/string.o \
+       core/software/shell.o
+
 
 kernel.bin: $(OBJS)
-	ld -m elf_i386 -o $@ -Ttext 0x1000 $^ --oformat binary
+	ld -m elf_i386 -o $@ -Ttext 0x10000 $^ --oformat binary
 
 kernel.elf: $(OBJS)
-	ld -m elf_i386 -o $@ -Ttext 0x1000 $^
+	ld -m elf_i386 -o $@ -Ttext 0x10000 $^
 
 kernel-entry.o: kernel-entry.asm
 	nasm $< -f elf -o $@

@@ -2,6 +2,7 @@
 #include "../../../../drivers/display.h"
 #include "../../../../drivers/keyboard.h"
 #include "../../../../drivers/io.h"
+#include "../../../../core/lib/string.h"
 
 #define WIDTH 25
 #define HEIGHT 15
@@ -32,7 +33,7 @@ void cmd_snake() {
     enum Direction dir = RIGHT;
 
     struct snake food = { rand_range(0, WIDTH-3), rand_range(0, HEIGHT-3) };
-
+    char buf[16];
     while(isRunning == 1) {
 
         clear_screen();
@@ -116,6 +117,11 @@ void cmd_snake() {
         // Draw bottom border
         for(int x = 0; x < WIDTH; x++) print_string("*", 0x0f);
         print_string("\n", 0x0f);
+        unsigned int size = sizeof(snake_body);
+        int_to_string(size, buf);
+        print_string("Memory in use: ", 0x0f);
+        print_string(buf, 0x0f);
+        //print_string("\n", 0x0f);
 
         for(volatile int delay = 0; delay < 50000000; delay++);
     }

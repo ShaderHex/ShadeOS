@@ -11,16 +11,6 @@
 #define WHITE_ON_BLACK 0x0f
 #define WHITE_ON_RED 0x4f
 
-unsigned char port_byte_in(unsigned short port) {
-    unsigned char result;
-    __asm__("in %%dx, %%al" : "=a" (result) : "d" (port));
-    return result;
-}
-
-void port_byte_out(unsigned short port, unsigned char data) {
-    __asm__("out %%al, %%dx" : : "a" (data), "d" (port));
-}
-
 void set_cursor(int offset) {
     offset /= 2;
     port_byte_out(VGA_CTRL_REGISTER, VGA_OFFSET_HIGH);

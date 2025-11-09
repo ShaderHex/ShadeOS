@@ -2,7 +2,7 @@
 #include "../../drivers/keyboard.h"
 #include "../../drivers/io.h"
 #include "../../drivers/panic.h"
-#include "../../core/lib/string.c"
+#include "../../core/lib/string.h"
 #include "shell/command/help.h"
 #include "shell/command/snake.h"
 #include "shell/command/systeminfo.h"

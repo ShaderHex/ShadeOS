@@ -1,5 +1,6 @@
 #pragma once
 #include "../../../../drivers/display.h"
+#include "../../../../drivers/io.h"
 #include <stdint.h>
 
 typedef unsigned int u32;
@@ -9,26 +10,6 @@ static inline void cpuid(u32 code, u32* a, u32* b, u32* c, u32* d) {
     __asm__ volatile("cpuid"
                      : "=a"(*a), "=b"(*b), "=c"(*c), "=d"(*d)
                      : "a"(code));
-}
-
-void int_to_string(u32 n, char* buf) {
-    int i = 0;
-    if (n == 0) {
-        buf[i++] = '0';
-        buf[i] = 0;
-        return;
-    }
-    while (n) {
-        buf[i++] = '0' + (n % 10);
-        n /= 10;
-    }
-    buf[i] = 0;
-
-    for (int j = 0; j < i / 2; j++) {
-        char t = buf[j];
-        buf[j] = buf[i - j - 1];
-        buf[i - j - 1] = t;
-    }
 }
 
 void print_cpu_info() {

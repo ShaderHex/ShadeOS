@@ -1,4 +1,5 @@
 #pragma once
+#include "io.h"
 
 int get_row_from_offset(int offset);
 int get_offset(int col, int row);

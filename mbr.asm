@@ -1,8 +1,11 @@
 [bits 16]
 [org 0x7c00]
 
-KERNEL_OFFSET equ 0x1000
+KERNEL_OFFSET equ 0x10000
 BOOT_DRIVE db 0x80
+
+KERNEL_SEG  equ KERNEL_OFFSET >> 4 
+KERNEL_OFF  equ KERNEL_OFFSET & 0x0F 
 
 start:
     mov [BOOT_DRIVE], dl
@@ -15,12 +18,12 @@ start:
     mov gs, ax
     mov si, msg_loading
     call print_string
-    
+
     call load_kernel
-    
+
     mov si, msg_pmode
     call print_string
-    
+
     call switch_to_32bit
     jmp $
 
@@ -40,41 +43,70 @@ print_string:
 
 disk_load:
     pusha
+    mov ax, KERNEL_SEG
+    mov es, ax
+    mov bx, KERNEL_OFF
+
+    mov si, msg_esbx
+    call print_string
+    mov ax, es
+    call print_hex
+    mov si, space
+    call print_string
+    mov ax, bx
+    call print_hex
+    mov si, newline
+    call print_string
+
     mov ah, 0x02
-    mov al, 11
+    mov al, 20
     mov cl, 0x02
     mov ch, 0x00
     mov dh, 0x00
     mov dl, [BOOT_DRIVE]
-    mov bx, KERNEL_OFFSET
     int 0x13
-    jc disk_error
+    jc .disk_err
+
+    mov si, msg_int13_ah_ok
+    call print_string
+    xor ah, ah
+    mov al, 0
+
+    mov al, ah 
+    mov si, newline
+    call print_string
+
     popa
     ret
 
-disk_error:
+.disk_err:
     mov si, msg_disk_error
+    call print_string
+    mov al, ah
+    xor ah, ah
+    call print_hex
+    mov si, newline
     call print_string
     jmp $
 
 load_kernel:
-    mov bx, KERNEL_OFFSET
     mov dl, [BOOT_DRIVE]
-    
+
+    mov al, dl
+    mov ah, 0
+
     mov si, msg_drive
     call print_string
-    mov al, dl
     call print_hex
     mov si, newline
     call print_string
-    
+
     call disk_load
     ret
 
-; Add hex print function
 print_hex:
     pusha
-    mov cx, 4
+    mov cx, 5
 .hex_loop:
     rol ax, 4
     mov bx, ax
@@ -88,10 +120,16 @@ print_hex:
     ret
 
 hex_chars db '0123456789ABCDEF'
-msg_drive db "Drive: 0x", 0
-newline db 13, 10, 0
 
-; GDT
+msg_loading    db "Booting...", 13, 10, 0
+msg_disk_error db "Disk error! Code: 0x", 0
+msg_drive      db "Drive: 0x", 0
+msg_pmode      db "PMode...", 0
+msg_esbx       db "ES:BX = 0x", 0
+msg_int13_ah_ok db "INT13 returned AH=", 0
+space          db " ", 0
+newline        db 13,10,0
+
 gdt_start:
     dq 0x0
 gdt_code:
@@ -133,15 +171,11 @@ init_32bit:
     mov fs, ax
     mov gs, ax
     mov ss, ax
-    mov ebp, 0x90000
+    mov ebp, 0x200000
     mov esp, ebp
-    
-    call KERNEL_OFFSET
-    jmp $
 
-msg_loading db "Booting...", 13, 10, 0
-msg_disk_error db "Disk error!", 0
-msg_pmode db "PMode...", 0
+    mov eax, KERNEL_OFFSET
+    jmp eax
 
 times 510-($-$$) db 0
 dw 0xAA55
