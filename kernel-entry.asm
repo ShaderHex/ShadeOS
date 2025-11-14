@@ -1,5 +1,9 @@
 [bits 32]
-[extern main]
+global _start
+extern main
+extern kernel_load_addr
 
-call main
-jmp $
+_start:
+    mov dword [kernel_load_addr], 0x42
+    call main
+    jmp $

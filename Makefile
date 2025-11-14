@@ -7,11 +7,11 @@ OBJS = kernel.o kernel-entry.o \
        core/software/shell.o
 
 
-kernel.bin: $(OBJS)
-	ld -m elf_i386 -o $@ -Ttext 0x10000 $^ --oformat binary
-
 kernel.elf: $(OBJS)
-	ld -m elf_i386 -o $@ -Ttext 0x10000 $^
+	ld -m elf_i386 -T linker.ld -o $@ $^
+
+kernel.bin: kernel.elf
+	objcopy -O binary $< $@
 
 kernel-entry.o: kernel-entry.asm
 	nasm $< -f elf -o $@

@@ -12,6 +12,8 @@ static inline void cpuid(u32 code, u32* a, u32* b, u32* c, u32* d) {
                      : "a"(code));
 }
 
+//extern uint32_t kernel_load_addr;
+
 void print_cpu_info() {
     u32 eax, ebx, ecx, edx;
     cpuid(0, &eax, &ebx, &ecx, &edx);
@@ -62,9 +64,20 @@ void print_memory_info() {
     print_string(" MB\n", 0x0f);
 }
 
+void print_kernel_mapped_info() {
+    //uint32_t kernel_load_addr = 0;
+    char buf[64];
+    //int_to_string(kernel_load_addr, buf);
+
+    print_string("\nKernel Mapped at: ", 0x0f);
+    print_string(buf, 0x0f);
+    print_string("\n", 0x0f);
+}
+
 void cmd_systeminfo() {
     print_string("\n=== SYSTEM INFO ===\n", 0x0f);
     print_cpu_info();
     print_memory_info();
+    print_kernel_mapped_info();
     print_string("===================\n", 0x0f);
 }

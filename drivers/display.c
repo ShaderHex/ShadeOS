@@ -54,6 +54,20 @@ void print_string(const char *string, unsigned char color) {
     set_cursor(offset);
 }
 
+void print_hex(uint32_t val) {
+    print_string("0x",0x0f);
+    char hex[9];
+    for (int i = 0; i < 8; i++) {
+        uint8_t nibble = (val >> (28 - i*4)) & 0xF;
+        if (nibble < 10)
+            hex[i] = '0' + nibble;
+        else
+            hex[i] = 'A' + (nibble - 10);
+    }
+    hex[8] = 0;
+    print_string(hex, 0x0f);
+}
+
 int get_row_from_offset(int offset) {
     return offset / (2 * MAX_COLS);
 }
