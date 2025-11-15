@@ -1,43 +1,33 @@
-all: run
+KERNEL_SRC	= kernel/src
+DRIVER_DIR 	= drivers/
+BIN_DIR		= bin
+ISODIR		= isodir
+INC 		= include
+CC 		    = gcc
+C_FLAGS		= -ffreestanding -O2 -nostdlib -mcmodel=kernel
+INC_DIR 	= include/
+all: build
 
-OBJS = kernel.o kernel-entry.o \
-       drivers/display.o drivers/panic.o drivers/keyboard.o \
-       drivers/io.o \
-       core/lib/string.o \
-       core/software/shell.o
+rmbin:
+	rm -rf bin
+mkbin: rmbin
+	mkdir -p bin
+build: mkbin
+	${CC} -c ${C_FLAGS} -I${INC_DIR} ${KERNEL_SRC}/kernel.c -o ${BIN_DIR}/kernel.o
+	${CC} -T ${KERNEL_SRC}/linker.ld \
+		${BIN_DIR}/kernel.o -o ${BIN_DIR}/kernel.bin \
+		-lgcc -nostdlib
+iso: build
+	cp ${BIN_DIR}/kernel.bin boot/EFI/limine/boot/kernel.bin
 
+	xorriso -as mkisofs -R -r -J -b limine-bios-cd.bin \
+        -no-emul-boot -boot-load-size 4 -boot-info-table -hfsplus \
+        -apm-block-size 2048 --efi-boot limine-uefi-cd.bin \
+        -efi-boot-part --efi-boot-image --protective-msdos-label \
+        boot/EFI/limine -o ${BIN_DIR}/kernel.iso
 
-kernel.elf: $(OBJS)
-	ld -m elf_i386 -T linker.ld -o $@ $^
-
-kernel.bin: kernel.elf
-	objcopy -O binary $< $@
-
-kernel-entry.o: kernel-entry.asm
-	nasm $< -f elf -o $@
-
-memory.o: kernel-entry.asm
-	nasm -f bin memory.asm -o memory.bin
-
-%.o: %.c
-	gcc -m32 -ffreestanding -fno-pie -c $< -o $@
-
-mbr.bin: mbr.asm
-	nasm $< -f bin -o $@
-
-os-image.bin: mbr.bin kernel.bin
-	cat $^ > os-image.bin
-	dd if=/dev/zero bs=512 count=10 >> os-image.bin 2>/dev/null || true
-
-run: os-image.bin
-	qemu-system-i386 -hda os-image.bin
-
-debug: os-image.bin kernel.elf
-	qemu-system-i386 -S -s -fda os-image.bin &
-	i386-elf-gdb -ex "target remote localhost:1234" -ex "symbol-file kernel.elf"
-
-clean:
-	rm -f *.bin *.elf
-	rm -f drivers/*.o
-	rm -f core/software/*.o
-	rm -f *.o
+	limine bios-install ${BIN_DIR}/kernel.iso
+run: iso
+	qemu-system-x86_64 -cdrom bin/kernel.iso \
+		-no-reboot \
+		-m 2048
