@@ -1,5 +1,5 @@
 KERNEL_SRC	= kernel/src
-DRIVER_DIR 	= drivers/
+DRIVER_DIR 	= kernel/src/drivers
 BIN_DIR		= bin
 ISODIR		= isodir
 INC 		= include
@@ -14,8 +14,11 @@ mkbin: rmbin
 	mkdir -p bin
 build: mkbin
 	${CC} -c ${C_FLAGS} -I${INC_DIR} ${KERNEL_SRC}/kernel.c -o ${BIN_DIR}/kernel.o
+	${CC} -c ${C_FLAGS} -I${INC_DIR} ${DRIVER_DIR}/display.c -o ${BIN_DIR}/display.o
+	${CC} -c ${C_FLAGS} -I${INC_DIR} ${DRIVER_DIR}/io.c -o ${BIN_DIR}/io.o
+	${CC} -c ${C_FLAGS} -I${INC_DIR} ${DRIVER_DIR}/display.c -o ${BIN_DIR}/display.o
 	${CC} -T ${KERNEL_SRC}/linker.ld \
-		${BIN_DIR}/kernel.o -o ${BIN_DIR}/kernel.bin \
+		${BIN_DIR}/kernel.o ${BIN_DIR}/display.o ${BIN_DIR}/io.o -o ${BIN_DIR}/kernel.bin \
 		-lgcc -nostdlib
 iso: build
 	cp ${BIN_DIR}/kernel.bin boot/EFI/limine/boot/kernel.bin
