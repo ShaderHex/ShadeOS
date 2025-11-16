@@ -4,12 +4,13 @@
 #include <limine.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <string.h>
 
 void init_framebuffer();
 int get_row_from_offset(int offset);
 int get_offset(int col, int row);
 int move_offset_to_new_line(int offset);
-int scroll_ln(int offset);
+int scroll_ln(int lines);
 void set_char_at_video_memory(struct limine_framebuffer *fb, int x, int y, char c, uint32_t color);
 void set_cursor(int offset);
 int get_cursor(void);

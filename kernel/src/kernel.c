@@ -5,8 +5,8 @@ void kmain() {
 
     clear_screen();
 
-    print_string(8, 8, "Hello from My Kernel!", 0xFFFFFFFF);
-    print_string(8, 16, "Framebuffer text works!", 0xFFFFFFFF);
+    print_string(8, 8, "Hello, I don't recommend touching my PC!", 0xFFFFFFFF);
+    print_string(336, 8, "Stay away from it...\nThank you!", 0xFFFFFFFF);
 
     for (;;) {
         asm("hlt");

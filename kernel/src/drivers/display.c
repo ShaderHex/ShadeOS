@@ -214,26 +214,28 @@ void set_char_at_video_memory(struct limine_framebuffer *fb, int x, int y, char 
     }
 }
 
-void print_string(int x, int y, const char *string, uint32_t color) {
-    int offset = get_cursor();
+void print_string(int start_x, int start_y, const char *string, uint32_t color) {
+    int cursor_x = start_x;
+    int cursor_y = start_y;
 
     for (int i = 0; string[i]; i++) {
         char c = string[i];
 
         if (c == '\n') {
-            offset = move_offset_to_new_line(offset);
+            cursor_x = start_x;
+            cursor_y += 8;
         } else {
-            set_char_at_video_memory(framebuffer, x + (i * 8), y, c, color);
-            offset += 2;
+            set_char_at_video_memory(framebuffer, cursor_x, cursor_y, c, color);
+            cursor_x += 8;
         }
 
-        if (get_row_from_offset(offset) >= MAX_ROWS) {
-            offset = scroll_ln(offset);
+        if (cursor_y + 8 > framebuffer->height) {
+            scroll_ln(8);
+            cursor_y -= 8;
         }
     }
-
-    set_cursor(offset);
 }
+
 
 void print_hex(uint32_t val) {
     //print_string("0x",0x0f);
@@ -268,20 +270,20 @@ void memory_copy(char *source, char *dest, int nbytes) {
     }
 }
 
-int scroll_ln(int offset) {
-    for (int row = 1; row < MAX_ROWS; row++) {
-        for (int col = 0; col < MAX_COLS; col++) {
-            char c = ' ';
-            set_char_at_video_memory(framebuffer, col * 8, (row - 1) * 8, c, WHITE_ON_BLACK);
-        }
-    }
+int scroll_ln(int lines) {
+    int bytes_per_line = framebuffer->pitch * 8;
+    int total_bytes    = framebuffer->pitch * framebuffer->height;
+    int scroll_bytes   = bytes_per_line * lines;
 
-    int last_row = MAX_ROWS - 1;
-    for (int col = 0; col < MAX_COLS; col++) {
-        set_char_at_video_memory(framebuffer, col * 8, last_row * 8, ' ', WHITE_ON_BLACK);
-    }
+    memory_copy((char*)framebuffer->address + scroll_bytes,
+                (char*)framebuffer->address,
+                total_bytes - scroll_bytes);
 
-    return offset - 2 * MAX_COLS;
+    int clear_bytes = scroll_bytes;
+    char *clear_start = (char*)framebuffer->address + total_bytes - clear_bytes;
+    for (int i = 0; i < clear_bytes; i++) {
+        clear_start[i] = 0;
+    }
 }
 
 
