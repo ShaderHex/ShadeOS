@@ -11,6 +11,8 @@
 #define WHITE_ON_BLACK 0x0f
 #define WHITE_ON_RED 0x4f
 
+#define FONT_SCALE 2
+
 char font8x8_basic[128][8] = {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   // U+0000 (nul)
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},   // U+0001
@@ -142,6 +144,12 @@ char font8x8_basic[128][8] = {
     { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}    // U+007F
 };
 
+int line = 8;
+int cursor_x = 0;
+int cursor_y = 0;
+
+struct limine_framebuffer *framebuffer;
+
 __attribute__((used, section(".limine_requests")))
 static volatile uint64_t limine_base_revision[] = LIMINE_BASE_REVISION(4);
 
@@ -179,7 +187,7 @@ void init_framebuffer() {
     }
     framebuffer = framebuffer_request.response->framebuffers[0];
 }
-static void putpixel(struct limine_framebuffer *fb, int x, int y, uint32_t color)
+void putpixel(struct limine_framebuffer *fb, int x, int y, uint32_t color)
 {
     uint8_t *screen = (uint8_t *)fb->address;
     uint32_t *pixel = (uint32_t *)(screen + y * fb->pitch + x * (fb->bpp / 8));
@@ -201,44 +209,78 @@ int get_cursor() {
     offset += port_byte_in(VGA_DATA_REGISTER);
     return offset * 2;
 }
-
-void set_char_at_video_memory(struct limine_framebuffer *fb, int x, int y, char c, uint32_t color) {
+void set_char_at_video_memory(struct limine_framebuffer *fb, int x, int y, char c, uint32_t color, int scale) {
     unsigned char *glyph = font8x8_basic[(int)c];
     for (int row = 0; row < 8; row++) {
         unsigned char bits = glyph[row];
         for (int col = 0; col < 8; col++) {
             if (bits & (1 << col)) {
-                putpixel(fb, x + col, y + row, color);
+                // Draw a scaled pixel block
+                for (int dy = 0; dy < scale; dy++) {
+                    for (int dx = 0; dx < scale; dx++) {
+                        putpixel(fb, x + col*scale + dx, y + row*scale + dy, color);
+                    }
+                }
             }
         }
     }
 }
 
-void print_string(int start_x, int start_y, const char *string, uint32_t color) {
-    int cursor_x = start_x;
-    int cursor_y = start_y;
+
+void print_string(const char *string, uint32_t color) {
+    for (int i = 0; string[i]; i++) {
+        char c = string[i];
+
+        if (c == '\n') {
+            cursor_x = 0;
+            cursor_y += 8 * FONT_SCALE;
+        } else {
+            set_char_at_video_memory(framebuffer, cursor_x, cursor_y, c, color, FONT_SCALE);
+            cursor_x += 8 * FONT_SCALE;
+        }
+
+        if (cursor_x + 8 * FONT_SCALE > framebuffer->width) {
+            cursor_x = 0;
+            cursor_y += 8 * FONT_SCALE;
+        }
+
+        if (cursor_y + 8 * FONT_SCALE > framebuffer->height) {
+            scroll_ln(8 * FONT_SCALE);
+            cursor_y -= 8 * FONT_SCALE;
+        }
+    }
+}
+
+void print_string_xy(int x, int y, const char *string, uint32_t color) {
+    int px = x;
+    int py = y;
 
     for (int i = 0; string[i]; i++) {
         char c = string[i];
 
         if (c == '\n') {
-            cursor_x = start_x;
-            cursor_y += 8;
+            px = x; 
+            py += 8 * FONT_SCALE;
         } else {
-            set_char_at_video_memory(framebuffer, cursor_x, cursor_y, c, color);
-            cursor_x += 8;
+            set_char_at_video_memory(framebuffer, px, py, c, color, FONT_SCALE);
+            px += 8 * FONT_SCALE;
         }
 
-        if (cursor_y + 8 > framebuffer->height) {
-            scroll_ln(8);
-            cursor_y -= 8;
+        if (px + 8 * FONT_SCALE > framebuffer->width) {
+            px = x;
+            py += 8 * FONT_SCALE;
+        }
+
+        if (py + 8 * FONT_SCALE > framebuffer->height) {
+            scroll_ln(8 * FONT_SCALE);
+            py -= 8 * FONT_SCALE;
         }
     }
 }
 
 
-void print_hex(uint32_t val) {
-    //print_string("0x",0x0f);
+void print_hex(uint64_t val) {
+    print_string("0x",0xFFFFFFFF);
     char hex[9];
     for (int i = 0; i < 8; i++) {
         uint8_t nibble = (val >> (28 - i*4)) & 0xF;
@@ -248,7 +290,7 @@ void print_hex(uint32_t val) {
             hex[i] = 'A' + (nibble - 10);
     }
     hex[8] = 0;
-    //print_string(hex, 0x0f);
+    print_string(hex, 0xFFFFFFFF);
 }
 
 int get_row_from_offset(int offset) {
@@ -270,26 +312,35 @@ void memory_copy(char *source, char *dest, int nbytes) {
     }
 }
 
-int scroll_ln(int lines) {
-    int bytes_per_line = framebuffer->pitch * 8;
-    int total_bytes    = framebuffer->pitch * framebuffer->height;
-    int scroll_bytes   = bytes_per_line * lines;
+int scroll_ln(int pixel_lines) {
+    int total_bytes  = framebuffer->pitch * framebuffer->height;
+    int scroll_bytes = framebuffer->pitch * pixel_lines;
 
     memory_copy((char*)framebuffer->address + scroll_bytes,
                 (char*)framebuffer->address,
                 total_bytes - scroll_bytes);
 
-    int clear_bytes = scroll_bytes;
-    char *clear_start = (char*)framebuffer->address + total_bytes - clear_bytes;
-    for (int i = 0; i < clear_bytes; i++) {
-        clear_start[i] = 0;
+    uint32_t *clear_start = (uint32_t*)((char*)framebuffer->address + total_bytes - scroll_bytes);
+    int clear_pixels = scroll_bytes / 4;
+    for (int i = 0; i < clear_pixels; i++) {
+        clear_start[i] = 0x00000000;
     }
+
+    return 0;
 }
 
 
+
 void clear_screen() {
-    for (int i = 0; i < MAX_COLS * MAX_ROWS; ++i) {
-        set_char_at_video_memory(framebuffer, 0, 0, ' ', 0x00000000);
+    uint32_t screen_width  = framebuffer->width;
+    uint32_t screen_height = framebuffer->height;
+
+    for (int y = 0; y < screen_height; y++) {
+        for (int x = 0; x < screen_width; x++) {
+            putpixel(framebuffer, x, y, 0x00000000);
+        }
     }
-    set_cursor(get_offset(0, 0));
+
+    cursor_x = 0;
+    cursor_y = 0;
 }

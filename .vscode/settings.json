@@ -6,6 +6,14 @@
         "panic.h": "c",
         "io.h": "c",
         "syscall.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "string.h": "c",
+        "help.h": "c",
+        "snake.h": "c",
+        "systeminfo.h": "c",
+        "stdbool.h": "c",
+        "stddef.h": "c",
+        "limine.h": "c",
+        "hwinfo.h": "c"
     }
 }
