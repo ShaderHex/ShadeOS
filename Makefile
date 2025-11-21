@@ -4,31 +4,29 @@ CORE_DIR    = kernel/src/core
 INC_DIR     = include
 BIN_DIR     = bin
 ISODIR      = isodir
-
 CC          = gcc
 CFLAGS      = -ffreestanding -O2 -nostdlib -mcmodel=kernel -I$(INC_DIR)
+ASM_SRC := $(shell find $(KERNEL_SRC) -name "*.asm")
+ASM_OBJ := $(patsubst %.asm,$(BIN_DIR)/%.o,$(ASM_SRC))
 
-# Automatically find all .c files
 SRC := $(shell find $(KERNEL_SRC) -name "*.c")
-# Convert each .c file into a .o output in bin/
 OBJ := $(patsubst %.c,$(BIN_DIR)/%.o,$(SRC))
 
-# Make sure folders inside bin/ exist
 DIRS := $(sort $(dir $(OBJ)))
 
 all: build
 
-# Create bin structure mirroring src structure
 $(BIN_DIR)/%/:
 	mkdir -p $@
 
-# Compile rule for each object
 $(BIN_DIR)/%.o: %.c | $(DIRS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Build the kernel
-build: $(OBJ)
-	$(CC) -T $(KERNEL_SRC)/linker.ld $(OBJ) -o $(BIN_DIR)/kernel.bin -lgcc -nostdlib
+$(BIN_DIR)/%.o: %.asm | $(DIRS)
+	nasm -f elf64 $< -o $@
+
+build: $(OBJ) $(ASM_OBJ)
+	$(CC) -T $(KERNEL_SRC)/linker.ld $(OBJ) $(ASM_OBJ) -o $(BIN_DIR)/kernel.bin -lgcc -nostdlib
 
 iso: build
 	cp $(BIN_DIR)/kernel.bin boot/EFI/limine/boot/kernel.bin

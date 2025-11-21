@@ -1,0 +1,20 @@
+#include "irq.h"
+
+irq_handler_t irq_handlers[16];
+
+void set_irq_handler(int irq, irq_handler_t fn) {
+    irq_handlers[irq] = fn;
+}
+
+extern void pic_eoi();
+
+void irq_dispatch(uint64_t irq) {
+    if (irq < 16 && irq_handlers[irq])
+        irq_handlers[irq]();
+    pic_eoi();
+}
+
+void irq_common_handler(uint64_t* stack) {
+    uint64_t int_no = stack[1];
+    irq_dispatch(int_no - 32);
+}
