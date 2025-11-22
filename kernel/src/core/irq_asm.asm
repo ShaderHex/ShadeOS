@@ -8,6 +8,7 @@ irq0_stub:
     jmp irq_common
 
 irq_common:
+    call irq_common_handler
     push r15
     push r14
     push r13

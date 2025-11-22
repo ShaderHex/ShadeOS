@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include "../drivers/display.h"
 
 typedef void (*irq_handler_t) ();
 extern irq_handler_t irq_handlers[16];
