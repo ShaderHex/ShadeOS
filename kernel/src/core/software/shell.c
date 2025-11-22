@@ -13,8 +13,8 @@ void execute_command(const char *cmd) {
         cmd_help();
     } else if (strcmp(cmd, "clear") == 0) {
         clear_screen();
-    } else if (strcmp(cmd, "shutdown") == 0) {
-        print_string("\nSystem shutting down...\n", 0xFFFFFFFF);
+    } else if (strcmp(cmd, "reboot") == 0) {
+        print_string("\nSystem rebooting...\n", 0xFFFFFFFF);
     } else if (strcmp(cmd, "snake") == 0) {
         cmd_snake();
     } else if (strcmp(cmd, "sysinfo") == 0) {

@@ -278,6 +278,32 @@ void print_string_xy(int x, int y, const char *string, uint32_t color) {
     }
 }
 
+void print_string_xyv(int x, int y, const char *string, uint32_t color, uint64_t font_size) {
+    int px = x;
+    int py = y;
+
+    for (int i = 0; string[i]; i++) {
+        char c = string[i];
+
+        if (c == '\n') {
+            px = x; 
+            py += 8 * font_size;
+        } else {
+            set_char_at_video_memory(framebuffer, px, py, c, color, font_size);
+            px += 8 * font_size;
+        }
+
+        if (px + 8 * font_size > framebuffer->width) {
+            px = x;
+            py += 8 * font_size;
+        }
+
+        if (py + 8 * font_size > framebuffer->height) {
+            scroll_ln(8 * font_size);
+            py -= 8 * font_size;
+        }
+    }
+}
 
 void print_hex(uint64_t val) {
     print_string("0x",0xFFFFFFFF);

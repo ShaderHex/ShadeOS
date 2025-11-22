@@ -17,6 +17,7 @@ void pit_init(uint32_t frequency) {
     set_irq_handler(0, pit_irq_handler);
 
     print_string("PIT initialized!", 0xFFFFFFFF);
+
 }
 
 void pic_remap() {
