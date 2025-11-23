@@ -21,25 +21,10 @@ void kmain() {
     print_memmap();
     print_string("\n", 0xFFFFFFFF);
     print_memory_info_detailed();
-    print_memory_info();
-    //pit_init(1000);    
+    print_memory_info();    
 
     print_string("ShadeOS x86_64 Pre-release!\n", 0xFFFFFFFF);
 
-    
-    pic_remap();
-    idt_init();
-    pit_init(1000);
-    asm volatile("sti");
-    uint64_t time = 0;
-    char buf[64];
-    while (true) {
-        uint64_t t = get_ticks();
-        int_to_string(t, buf);
-        print_string(buf, 0xFFFFFFFF);
-        print_string("\n", 0xFFFFFFFF);
-        delay(5000000);
-    }
 
     shell_loop();
 

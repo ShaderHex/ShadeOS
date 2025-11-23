@@ -1,38 +1,34 @@
 #include "idt.h"
 
-struct idt_entry {
-    uint16_t offset_low;
-    uint16_t selector;
-    uint8_t ist;
-    uint8_t type_attr;
-    uint16_t offset_mid;
-    uint32_t offset_high;
-    uint32_t zero;
-} __attribute__ ((packed));
 
-struct idt_ptr {
-    uint16_t limit;
-    uint64_t base;
-} __attribute__ ((packed));
+#define GDT_OFFSET_KERNEL_CODE 0xffffffff80000000ULL
 
-struct idt_entry idt[256];
-struct idt_ptr idtp;
+__attribute__((noreturn))
+void exception_handler() {
+    __asm__ volatile ("cli; hlt");
+}
 
-extern void irq0_stub();
+void idt_set_descriptor(uint8_t vector, void* isr, uint8_t flags) {
+    idt_entry_t* descriptor = &idt[vector];
 
-void idt_set_gate(int n, uint64_t handler) {
-    idt[n].offset_low = handler & 0xFFFF;
-    idt[n].selector = 0x08;
-    idt[n].ist = 0;
-    idt[n].type_attr = 0x8E;
-    idt[n].offset_mid = (handler >> 16) & 0xFFFF;
-    idt[n].offset_high = (handler >> 32) & 0xFFFFFFFF;
-    idt[n].zero = 0;
+    descriptor->isr_low        = (uint64_t)isr & 0xFFFF;
+    descriptor->kernel_cs      = GDT_OFFSET_KERNEL_CODE;
+    descriptor->ist            = 0;
+    descriptor->attributes     = flags;
+    descriptor->isr_mid        = ((uint64_t)isr >> 16) & 0xFFFF;
+    descriptor->isr_high       = ((uint64_t)isr >> 32) & 0xFFFFFFFF;
+    descriptor->reserved       = 0;
 }
 
 void idt_init() {
-    idtp.limit = sizeof(idt) -1;
-    idtp.base = (uint64_t)&idt;
-    idt_set_gate(32, (uint64_t)irq0_stub);
-    asm volatile("lidt %0" : : "m"(idtp));
+    idtr.base = (uintptr_t)&idt[0];
+    idtr.limit = (uint16_t)sizeof(idt_entry_t) * IDT_MAX_DESCRIPTORS - 1;
+
+    for (uint8_t vector = 0; vector < 32; vector++) {
+        idt_set_descriptor(vector, isr_stub_table[vector], 0x8E);
+        vectors[vector] = true;
+    }
+
+    __asm__ volatile ("lidt %0" : : "m"(idtr));
+    __asm__ volatile ("sti");
 }
