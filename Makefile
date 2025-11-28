@@ -5,7 +5,7 @@ INC_DIR     = include
 BIN_DIR     = bin
 ISODIR      = isodir
 CC          = gcc
-CFLAGS      = -ffreestanding -O2 -nostdlib -mcmodel=kernel -I$(INC_DIR) -mno-red-zone
+CFLAGS      = -ffreestanding -O -nostdlib -mcmodel=kernel -I$(INC_DIR) -mno-red-zone
 ASM_SRC := $(shell find $(KERNEL_SRC) -name "*.asm")
 ASM_OBJ := $(patsubst %.asm,$(BIN_DIR)/%.o,$(ASM_SRC))
 

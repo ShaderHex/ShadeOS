@@ -29,3 +29,7 @@ void int_to_string(unsigned int n, char* buf) {
         buf[i - j - 1] = t;
     }
 }
+
+void io_wait(void) {
+    port_byte_out(0x80, 0);
+}

@@ -17,6 +17,8 @@
         "hwinfo.h": "c",
         "irq.h": "c",
         "pit.h": "c",
-        "idt.h": "c"
+        "idt.h": "c",
+        "pic.h": "c",
+        "binary.h": "c"
     }
 }

@@ -7,6 +7,7 @@
 #include "shell/command/systeminfo.h"
 #include "shell.h"
 
+int isRunning = 1;
 
 void execute_command(const char *cmd) {
     if (strcmp(cmd, "help") == 0) {
@@ -21,6 +22,9 @@ void execute_command(const char *cmd) {
         cmd_systeminfo();
     } else if (strcmp(cmd, "panic") == 0) {
         kpanic("Test");
+    } else if (strcmp(cmd, "exit") == 0) {
+        print_string("\nExiting...\n", 0xFFFFFFFF);
+        isRunning = 0;
     } else {
         print_string("\nUnknown command: ", 0xFFFFFFFF);
         print_string((char*)cmd,0xFFFFFFFF);
@@ -35,7 +39,7 @@ void shell_loop(void) {
     char command[128];
     int index = 0;
 
-    while (1) {
+    while (isRunning == 1) {
         unsigned char status = port_byte_in(0x64);
         if (status & 0x01) {
             unsigned char scancode = keyboard_read_scancode();

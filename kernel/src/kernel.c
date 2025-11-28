@@ -2,6 +2,7 @@
 #include "core/software/shell.h"
 #include "core/PIT.h"
 #include "core/idt.h"
+#include "core/gdt.h"
 #include "drivers/panic.h"
 #include "drivers/hwinfo.h"
 #include <limine.h>
@@ -22,8 +23,15 @@ void kmain() {
     print_string("\n", 0xFFFFFFFF);
     print_memory_info_detailed();
     print_memory_info();    
+    //idt_init();
+    gdt_init();
+
 
     print_string("ShadeOS x86_64 Pre-release!\n", 0xFFFFFFFF);
+
+    while(false) {
+
+    }
 
 
     shell_loop();
