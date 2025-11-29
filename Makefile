@@ -6,6 +6,7 @@ BIN_DIR     = bin
 ISODIR      = isodir
 CC          = gcc
 CFLAGS      = -ffreestanding -O -nostdlib -mcmodel=kernel -I$(INC_DIR) -mno-red-zone
+CFLAGS_DEBUG = -g -O0 -ffreestanding -nostdlib -mcmodel=kernel -I$(INC_DIR) -mno-red-zone
 ASM_SRC := $(shell find $(KERNEL_SRC) -name "*.asm")
 ASM_OBJ := $(patsubst %.asm,$(BIN_DIR)/%.o,$(ASM_SRC))
 
@@ -27,6 +28,11 @@ $(BIN_DIR)/%.o: %.asm | $(DIRS)
 
 build: $(OBJ) $(ASM_OBJ)
 	$(CC) -T $(KERNEL_SRC)/linker.ld $(OBJ) $(ASM_OBJ) -o $(BIN_DIR)/kernel.bin -lgcc -nostdlib
+
+debug: CFLAGS := $(CFLAGS_DEBUG)
+debug: iso
+	qemu-system-x86_64 -cdrom $(BIN_DIR)/kernel.iso \
+		-m 2048 -S -s
 
 iso: build
 	cp $(BIN_DIR)/kernel.bin boot/EFI/limine/boot/kernel.bin

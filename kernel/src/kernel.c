@@ -3,6 +3,7 @@
 #include "core/PIT.h"
 #include "core/idt.h"
 #include "core/gdt.h"
+#include "core/TSC.h"
 #include "drivers/panic.h"
 #include "drivers/hwinfo.h"
 #include <limine.h>
@@ -23,14 +24,20 @@ void kmain() {
     print_string("\n", 0xFFFFFFFF);
     print_memory_info_detailed();
     print_memory_info();    
-    //idt_init();
+    tsc_init();
+    idt_init();
     gdt_init();
-
+    asm("sti");
 
     print_string("ShadeOS x86_64 Pre-release!\n", 0xFFFFFFFF);
-
-    while(false) {
-
+    
+    uint64_t time = read_pit_count();  
+    while(true) {
+        fps_tick();
+        char buf[64];
+        int_to_string(current_fps, buf);
+        print_string(buf, 0xFFFFFFFF);
+        print_string("\n", 0xFFFFFFFF);
     }
 
 

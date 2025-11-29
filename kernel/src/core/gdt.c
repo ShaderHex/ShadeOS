@@ -13,7 +13,8 @@ void create_descriptor(uint32_t base, uint32_t limit, uint16_t flag)
  
     descriptor |= base  << 16;
     descriptor |= limit  & 0x0000FFFF;
- 
+    
+    print_string("GDT created descriptor: ", 0xFFFFFFFF);
     print_hex(descriptor);
     print_string("\n", 0xFFFFFFFF);
 }
