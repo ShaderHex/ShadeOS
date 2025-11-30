@@ -1,5 +1,6 @@
 #include "display.h"
 #include <stdint.h>
+#include <stdarg.h>
 #define FONT_SCALE 2
 
 #define PANIC_BG   0xFF0000
@@ -9,6 +10,25 @@ static int center_text_x(const char* text, int screen_width) {
     int text_width = strlen(text) * 8 * FONT_SCALE;
     return (screen_width - text_width) / 2;
 }
+
+
+void kpanic_memcpy(void* src, void* dst, size_t n) {
+    char src_buf[17], dst_buf[17], size_buf[21], msg[128];
+
+    uint_to_hex((uint64_t)src, src_buf);
+    uint_to_hex((uint64_t)dst, dst_buf);
+    uint_to_dec(n, size_buf);
+
+    strcpy(msg, "kmemcpy invalid: src=");
+    strcat(msg, src_buf);
+    strcat(msg, " dst=");
+    strcat(msg, dst_buf);
+    strcat(msg, " size=");
+    strcat(msg, size_buf);
+
+    kpanic(msg);
+}
+
 
 void kpanic(const char* msg) {
     uint32_t screen_width  = framebuffer->width;

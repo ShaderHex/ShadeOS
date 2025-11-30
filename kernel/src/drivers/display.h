@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "../core/lib/string.h"
+#include "../drivers/io.h"
 
 extern struct limine_framebuffer *framebuffer;
 
@@ -17,8 +18,10 @@ void set_char_at_video_memory(struct limine_framebuffer *fb, int x, int y, char 
 void set_cursor(int offset);
 int get_cursor(void);
 void print_string(const char *string, uint32_t color);
+void print_debug(const char *string, int defaultCol, uint32_t color);
 void print_string_xy(int x, int y, const char *string, uint32_t color);
 void print_string_xyv(int x, int y, const char *string, uint32_t color, uint64_t font_size);
 void print_hex(uint64_t val);
 void clear_screen();
 void putpixel(struct limine_framebuffer *fb, int x, int y, uint32_t color);
+void swap_buffers();

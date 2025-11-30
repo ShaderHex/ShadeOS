@@ -48,20 +48,20 @@ void print_memmap() {
         struct limine_memmap_entry *e = resp->entries[i];
 
         u64_to_dec(i, buf);
-        print_string("Entry ", 0xFFFFFFFF);
-        print_string(buf, 0xFFFFFFFF);
-        print_string(": Base=", 0xFFFFFFFF);
+        print_debug("Entry ", 1, 0);
+        print_debug(buf, 3, 0);
+        print_debug(": Base=", 3, 0);
 
         u64_to_hex(e->base, buf, 16);
-        print_string(buf, 0xFFFFFFFF);
-        print_string(" Size=", 0xFFFFFFFF);
+        print_debug(buf, 3, 0);
+        print_debug(" Size=", 3, 0);
 
         u64_to_hex(e->length, buf, 16);
-        print_string(buf, 0xFFFFFFFF);
-        print_string(" Type=", 0xFFFFFFFF);
+        print_debug(buf, 3, 0);
+        print_debug(" Type=", 3, 0);
 
         u64_to_dec(e->type, buf);
-        print_string(buf, 0xFFFFFFFF);
+        print_debug(buf, 3, 0);
         print_string("\n", 0xFFFFFFFF);
     }
 }
@@ -80,6 +80,7 @@ void print_memory_info_detailed() {
 
         char numbuf[32];
         int_to_string(i, numbuf);
+        print_debug("", 1, 0);
         print_string("Entry #", 0xFFFFFFFF);
         print_string(numbuf, 0xFFFFFFFF);
         print_string(": ", 0xFFFFFFFF);
@@ -138,12 +139,14 @@ void print_memory_info() {
     char buf[64];
 
     u64_to_hex(total_usable, buf, 18);
+    print_debug("", 1, 0);
     print_string("Total usable RAM (bytes): ", 0xFFFFFFFF);
     print_string(buf, 0xFFFFFFFF);
     print_string("\n", 0xFFFFFFFF);
 
     uint64_t mb = total_usable / (1024 * 1024);
     int_to_string(mb, buf);
+    print_debug("", 1, 0);
     print_string("Total usable RAM (MB): ", 0xFFFFFFFF);
     print_string(buf, 0xFFFFFFFF);
     print_string("\n", 0xFFFFFFFF);

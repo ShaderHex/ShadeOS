@@ -5,11 +5,11 @@
 #define VGA_OFFSET_LOW 0x0f
 #define VGA_OFFSET_HIGH 0x0e
 
-#define VIDEO_ADDRESS 0xb8000
 #define MAX_ROWS 25
 #define MAX_COLS 80
-#define WHITE_ON_BLACK 0x0f
-#define WHITE_ON_RED 0x4f
+
+#define WIDTH 800
+#define HEIGHT 600
 
 #define FONT_SCALE 2
 
@@ -149,6 +149,7 @@ int cursor_x = 0;
 int cursor_y = 0;
 
 struct limine_framebuffer *framebuffer;
+uint32_t *backbuffer;
 
 __attribute__((used, section(".limine_requests")))
 static volatile uint64_t limine_base_revision[] = LIMINE_BASE_REVISION(4);
@@ -175,6 +176,13 @@ static void hcf(void)
     }
 }
 
+void memory_copy(char *source, char *dest, int nbytes) {
+    int i;
+    for (i = 0; i < nbytes; i++) {
+        *(dest + i) = *(source + i);
+    }
+}
+
 void init_framebuffer() {
     if (LIMINE_BASE_REVISION_SUPPORTED(limine_base_revision) == false)
     {
@@ -186,13 +194,32 @@ void init_framebuffer() {
         hcf();
     }
     framebuffer = framebuffer_request.response->framebuffers[0];
+    backbuffer = kmalloc(framebuffer->width * framebuffer->height * sizeof(uint32_t)); /* allocating around 1.9 MB. to be more accurate, it's 1.92MB for 800 by 600 */
 }
+
+
+
 void putpixel(struct limine_framebuffer *fb, int x, int y, uint32_t color)
 {
     uint8_t *screen = (uint8_t *)fb->address;
     uint32_t *pixel = (uint32_t *)(screen + y * fb->pitch + x * (fb->bpp / 8));
     *pixel = color;
 }
+
+
+void swap_buffers() {
+    uint8_t* front = (uint8_t*) framebuffer->address;
+    uint32_t* back = (uint32_t*) backbuffer;
+
+    for (uint64_t y = 0; y < framebuffer->height; y++) {
+        kmemcpy(
+            front + y * framebuffer->pitch,
+            back  + y * framebuffer->width,
+            framebuffer->width * 4
+        );
+    }
+}
+
 
 void set_cursor(int offset) {
     offset /= 2;
@@ -215,7 +242,6 @@ void set_char_at_video_memory(struct limine_framebuffer *fb, int x, int y, char 
         unsigned char bits = glyph[row];
         for (int col = 0; col < 8; col++) {
             if (bits & (1 << col)) {
-                // Draw a scaled pixel block
                 for (int dy = 0; dy < scale; dy++) {
                     for (int dx = 0; dx < scale; dx++) {
                         putpixel(fb, x + col*scale + dx, y + row*scale + dy, color);
@@ -248,6 +274,20 @@ void print_string(const char *string, uint32_t color) {
             scroll_ln(8 * FONT_SCALE);
             cursor_y -= 8 * FONT_SCALE;
         }
+    }
+}
+
+void print_debug(const char *string, int defaultCol, uint32_t color) {
+    if (defaultCol == 1) {
+        print_string("[ DEBUG ] ", 0xFF888888);
+        print_string(string, 0xFF888888);
+    } else if (defaultCol == 2) {
+        print_string("[ DEBUG ] ", 0xFF888888);
+        print_string(string, color);
+    } else if (defaultCol == 3) {
+        print_string(string, 0xFF888888);
+    } else if (defaultCol == 4) {
+        print_string(string, color);
     }
 }
 
@@ -329,13 +369,6 @@ int get_offset(int col, int row) {
 
 int move_offset_to_new_line(int offset) {
     return get_offset(0, get_row_from_offset(offset) + 1);
-}
-
-void memory_copy(char *source, char *dest, int nbytes) {
-    int i;
-    for (i = 0; i < nbytes; i++) {
-        *(dest + i) = *(source + i);
-    }
 }
 
 int scroll_ln(int pixel_lines) {

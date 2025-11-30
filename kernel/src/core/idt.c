@@ -9,6 +9,11 @@ void fps_exception_handler(void* frame) {
     kpanic("CPU Exception caught during FPS tick!");
 }
 
+void kmemcpy_exception_handler(void* frame) {
+    kpanic("kmemcpy caused a CPU fault!");
+}
+
+
 void idt_set_descriptor(uint8_t vector, void* isr, uint8_t flags) {
     idt_entry_t* descriptor = &idt[vector];
 
@@ -29,9 +34,13 @@ void idt_init() {
         idt_set_descriptor(vector, isr_stub_table[vector], 0x8E);
         vectors[vector] = true;
     }
-    idt_set_descriptor(0, fps_exception_handler, 0x8E);   // Divide Error
-    idt_set_descriptor(7, fps_exception_handler, 0x8E);   // Device Not Available (SSE/FPU)
-    idt_set_descriptor(13, fps_exception_handler, 0x8E);  // General Protection
+
+    
+
+    for (uint8_t vector = 0; vector < 32; vector++) {
+        idt_set_descriptor(vector, fps_exception_handler, 0x8E);
+    }
+
 
     __asm__ volatile ("lidt %0" : : "m"(idtr));
     __asm__ volatile ("sti");

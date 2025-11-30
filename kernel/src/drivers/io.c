@@ -33,3 +33,29 @@ void int_to_string(unsigned int n, char* buf) {
 void io_wait(void) {
     port_byte_out(0x80, 0);
 }
+
+void uint_to_hex(uint64_t val, char* buf) {
+    const char* hex = "0123456789ABCDEF";
+    for (int i = 0; i < 16; i++) {
+        buf[15 - i] = hex[val & 0xF];
+        val >>= 4;
+    }
+    buf[16] = 0;
+}
+
+void uint_to_dec(uint64_t val, char* buf) {
+    char tmp[21];
+    int i = 0;
+    if (val == 0) {
+        buf[0] = '0';
+        buf[1] = 0;
+        return;
+    }
+    while (val > 0) {
+        tmp[i++] = '0' + (val % 10);
+        val /= 10;
+    }
+    int j = 0;
+    while (i > 0) buf[j++] = tmp[--i];
+    buf[j] = 0;
+}

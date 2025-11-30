@@ -51,4 +51,6 @@ SECTIONS
         *(.eh_frame*)
         *(.note .note.*)
     }
+
+    _end = .;
 }
