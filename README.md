@@ -15,7 +15,7 @@ not much to see as even the readme is under construction
 - [ ] Scheduler  
 - [ ] Syscall  
 - [ ] User space / kernel space  
-- [ ] HESP (the timer)
+- [ ] HPET
 - [ ] ACPI
 - [ ] GUI
 
