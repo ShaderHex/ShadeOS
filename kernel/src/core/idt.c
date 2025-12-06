@@ -5,6 +5,11 @@ void exception_handler() {
     __asm__ volatile ("cli; hlt");
 }
 
+void double_fault_handler(void* frame) {
+    kpanic("Double fault caught!");
+    __asm__ volatile("cli; hlt");
+}
+
 void fps_exception_handler(void* frame) {
     kpanic("CPU Exception caught during FPS tick!");
 }
@@ -19,7 +24,7 @@ void idt_set_descriptor(uint8_t vector, void* isr, uint8_t flags) {
 
     descriptor->isr_low        = (uint64_t)isr & 0xFFFF;
     descriptor->kernel_cs      = 0x08;
-    descriptor->ist            = 0;
+    descriptor->ist            = 1;
     descriptor->attributes     = flags;
     descriptor->isr_mid        = ((uint64_t)isr >> 16) & 0xFFFF;
     descriptor->isr_high       = ((uint64_t)isr >> 32) & 0xFFFFFFFF;
@@ -30,15 +35,11 @@ void idt_init() {
     idtr.base = (uintptr_t)&idt[0];
     idtr.limit = (uint16_t)sizeof(idt_entry_t) * IDT_MAX_DESCRIPTORS - 1;
 
-    for (uint8_t vector = 0; vector < 32; vector++) {
-        idt_set_descriptor(vector, isr_stub_table[vector], 0x8E);
-        vectors[vector] = true;
-    }
 
-    
+    idt_set_descriptor(8, double_fault_handler, 0x8E);
 
     for (uint8_t vector = 0; vector < 32; vector++) {
-        idt_set_descriptor(vector, fps_exception_handler, 0x8E);
+        idt_set_descriptor(vector, exception_handler, 0x8E);
     }
 
 

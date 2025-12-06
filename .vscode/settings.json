@@ -19,6 +19,8 @@
         "pit.h": "c",
         "idt.h": "c",
         "pic.h": "c",
-        "binary.h": "c"
+        "binary.h": "c",
+        "task.h": "c",
+        "scheduler.h": "c"
     }
 }
