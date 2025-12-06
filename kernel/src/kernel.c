@@ -15,7 +15,7 @@ void delay(int count) {
     for (volatile int i = 0; i < count; i++);
 }
 
-void task() {
+void task1() {
     print_string("Task 1\n", 0xFFFFFFFF);
 }
 
@@ -49,7 +49,7 @@ void kmain() {
     print_string("\nShadeOS x86_64 Pre-release!\n", 0xFFFFFFFF);
     
 
-    scheduler_add(task);
+    scheduler_add(task1);
     scheduler_add(task2);
     scheduler_add(task3);
 
